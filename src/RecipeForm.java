@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.sql.SQLException;
 
 public class RecipeForm extends JFrame {
     private final JTextField recipeNameField;
@@ -41,9 +42,19 @@ public class RecipeForm extends JFrame {
         // Add a "Submit" button
         JButton submitButton = new JButton("Submit");
         submitButton.addActionListener(e -> {
-            // Handle the submission (you can add code to save to the database here)
+            // Fetch values from the form
+            String recipeName = recipeNameField.getText();
+            int persons = (int) personSpinner.getValue();
+            String ingredients = ingredientsArea.getText();
+            String steps = stepsArea.getText();
+            String category = (String) categoryComboBox.getSelectedItem();
             if (validateForm()) {
-                saveRecipe();
+                String filePath = saveRecipe(recipeName, ingredients, steps);
+                try {
+                    DatabaseCreator.insertRecipe(Eateasy.establishDatabaseConnection(), recipeName, category, ingredients, filePath);
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
             } else {
                 JOptionPane.showMessageDialog(RecipeForm.this, "Please fill in all fields.", "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -91,16 +102,9 @@ public class RecipeForm extends JFrame {
                 !stepsArea.getText().isEmpty();
     }
 
-    private void saveRecipe() {
-        // Fetch values from the form
-        String recipeName = recipeNameField.getText();
-        //int persons = (int) personSpinner.getValue();
-        String ingredients = ingredientsArea.getText();
-        String steps = stepsArea.getText();
-        //String category = (String) categoryComboBox.getSelectedItem();
-
+    private String saveRecipe(String nameOfRecipe, String listOfIngredients, String stepsOfRecipe) {
         // Create a new text file
-        String fileName = RECIPE_FOLDER + File.separator + recipeName + ".txt";
+        String fileName = RECIPE_FOLDER + File.separator + nameOfRecipe + ".txt";
         File recipeFile = new File(fileName);
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(recipeFile))) {
@@ -108,7 +112,7 @@ public class RecipeForm extends JFrame {
             writer.write("Ingredients:\n");
 
             // Split ingredients based on semicolons and write each on a new line
-            String[] ingredientsArray = ingredients.split(";");
+            String[] ingredientsArray = listOfIngredients.split(";");
             for (String ingredient : ingredientsArray) {
                 writer.write(ingredient.trim());
                 writer.newLine();
@@ -119,7 +123,7 @@ public class RecipeForm extends JFrame {
             writer.write("Instructions:\n");
 
             // Split steps based on semicolons and write each on a new line with step numbers
-            String[] stepsArray = steps.split(";");
+            String[] stepsArray = stepsOfRecipe.split(";");
             for (int i = 0; i < stepsArray.length; i++) {
                 writer.write("Step " + (i + 1) + ": " + stepsArray[i].trim());
                 writer.newLine();
@@ -133,6 +137,8 @@ public class RecipeForm extends JFrame {
 
         // Optionally, clear the form after saving
         clearForm();
+
+        return fileName;
     }
 
     private void clearForm() {

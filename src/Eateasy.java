@@ -1,12 +1,10 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.sql.*;
 
 public class Eateasy extends JFrame {
     // Components
@@ -17,7 +15,7 @@ public class Eateasy extends JFrame {
     // Database connection parameters
     private static final String DB_URL = "jdbc:mariadb://localhost:3306/Eateasy";
     private static final String DB_USER = "root";
-    private static final String DB_PASSWORD = "root";
+    private static final String DB_PASSWORD = "admin";
 
     // Constructor for the Eateasy App class
     public Eateasy() {
@@ -36,33 +34,20 @@ public class Eateasy extends JFrame {
         JButton exitButton = new JButton("Exit");
 
         // Add action listeners to the buttons
-        addRecipeButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    openAddRecipePanel(); // Call the method to open the add recipe panel
-                } catch (SQLException ex) {
-                    throw new RuntimeException(ex);
-                }
+        addRecipeButton.addActionListener(e -> {
+            openAddRecipePanel(); // Call the method to open the add recipe panel
+        });
+
+        viewRecipeButton.addActionListener(e -> {
+            try {
+                openViewRecipePanel(); // Call the method to open the view Recipes panel
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
             }
         });
 
-        viewRecipeButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    openViewRecipePanel(); // Call the method to open the view Recipes panel
-                } catch (SQLException ex) {
-                    throw new RuntimeException(ex);
-                }
-            }
-        });
-
-        exitButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.exit(0); // Exit the application when the exit button is clicked
-            }
+        exitButton.addActionListener(e -> {
+            System.exit(0); // Exit the application when the exit button is clicked
         });
 
         // Add buttons to the main menu panel
@@ -83,9 +68,6 @@ public class Eateasy extends JFrame {
     // Method to open the view recipes panel
     private void openViewRecipePanel() throws SQLException {
         mainMenuPanel.setVisible(false); // Hide the main menu panel
-
-        // Establish a database connection
-        Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
 
         // Initialize and configure the view recipes panel
         viewRecipePanel = new JPanel();
@@ -115,20 +97,17 @@ public class Eateasy extends JFrame {
                 descriptionLabel.setForeground(Color.GRAY);
             }
 
-            markCompleteButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    try {
-                        // Implement logic to mark the recipe as complete
-                        recipe.setCompleted(true);
+            markCompleteButton.addActionListener(e -> {
+                try {
+                    // Implement logic to mark the recipe as complete
+                    recipe.setCompleted(true);
 
-                        // Update the UI to visually differentiate completed recipes
-                        markCompleteButton.setEnabled(false);
-                        titleLabel.setForeground(Color.GRAY);
-                        descriptionLabel.setForeground(Color.GRAY);
-                    } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(viewRecipePanel, "An error occurred while marking the recipe as complete.", "Error", JOptionPane.ERROR_MESSAGE);
-                    }
+                    // Update the UI to visually differentiate completed recipes
+                    markCompleteButton.setEnabled(false);
+                    titleLabel.setForeground(Color.GRAY);
+                    descriptionLabel.setForeground(Color.GRAY);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(viewRecipePanel, "An error occurred while marking the recipe as complete.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             });
 
@@ -140,12 +119,9 @@ public class Eateasy extends JFrame {
 
         // Create a button to go back to the main menu
         JButton backButton = new JButton("Back to Main Menu");
-        backButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                viewRecipePanel.setVisible(false);
-                mainMenuPanel.setVisible(true);
-            }
+        backButton.addActionListener(e -> {
+            viewRecipePanel.setVisible(false);
+            mainMenuPanel.setVisible(true);
         });
 
         // Add an empty cell for alignment, and the back button to the view recipes panel
@@ -159,8 +135,8 @@ public class Eateasy extends JFrame {
 
     // Static inner class representing a Recipe
     private static class Recipe {
-        private String title;
-        private String description;
+        private final String title;
+        private final String description;
         private boolean completed;
 
         // Constructor for Recipe
@@ -189,9 +165,18 @@ public class Eateasy extends JFrame {
         }
     }
 
+    public static Connection establishDatabaseConnection() throws SQLException {
+        return DriverManager.getConnection(Eateasy.DB_URL, Eateasy.DB_USER, Eateasy.DB_PASSWORD);
+    }
+
     // Main method to start the application
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
+            try {
+                DatabaseCreator.createDatabase();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
             Eateasy app = new Eateasy();
             app.setVisible(true);
         });
