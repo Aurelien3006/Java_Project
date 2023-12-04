@@ -7,6 +7,8 @@ public class DatabaseCreator {
         createDatabase();
     }
 
+
+
     private static void createDatabase() {
         try (Connection connection = DriverManager.getConnection("jdbc:mariadb://localhost:3300/eateasy",
                 "root", "root")) {
