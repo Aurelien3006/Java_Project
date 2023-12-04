@@ -14,10 +14,10 @@ public class Eateasy extends JFrame {
     private final JPanel mainMenuPanel; // Panel for the main menu
     private JPanel addRecipePanel; // Panel for adding recipes
     private JPanel viewRecipePanel; // Panel for viewing recipes
-    private List<Recipe> recipes; // List to store recipes
+
 
     // Database connection parameters
-    private static final String DB_URL = "jdbc:mariadb://localhost:3306/Eateasy";
+    private static final String DB_URL = "jdbc:mariadb://localhost:3306/eateasy";
     private static final String DB_USER = "root";
     private static final String DB_PASSWORD = "root";
 
@@ -72,7 +72,7 @@ public class Eateasy extends JFrame {
         mainMenuPanel.add(viewRecipeButton);
         mainMenuPanel.add(exitButton);
 
-        recipes = new ArrayList<>(); // Initialize the list of Recipes
+
 
         getContentPane().add(mainMenuPanel); // Add the main menu panel to the content pane
     }
@@ -150,54 +150,51 @@ public class Eateasy extends JFrame {
 
         // Initialize and configure the view recipes panel
         viewRecipePanel = new JPanel();
-        viewRecipePanel.setLayout(new GridLayout(recipes.size() + 2, 4)); // Set the layout based on the number of recipes
+        GridLayout gridLayout = new GridLayout(0, 3);
+        gridLayout.setHgap(5); // Add horizontal gap between cells
+        gridLayout.setVgap(5); // Add vertical gap between cells
+        viewRecipePanel.setLayout(gridLayout);
 
         // Create labels for the table headers
-        JLabel titleHeader = new JLabel("Title");
-        JLabel descriptionHeader = new JLabel("Description");
-        JLabel actionHeader = new JLabel("Action");
+        JLabel titleHeader = new JLabel("Name");
+        JLabel categoryHeader = new JLabel("Category");
+        JLabel tagsHeader = new JLabel("Tags");
 
         // Add headers to the view recipes panel
         viewRecipePanel.add(titleHeader);
-        viewRecipePanel.add(descriptionHeader);
-        viewRecipePanel.add(actionHeader);
+        viewRecipePanel.add(categoryHeader);
+        viewRecipePanel.add(tagsHeader);
 
-        // Iterate through the recipes and create labels and buttons for each recipe
-        for (Recipe recipe : recipes) {
-            JLabel titleLabel = new JLabel(recipe.getTitle());
-            JLabel descriptionLabel = new JLabel(recipe.getDescription());
-            JButton markCompleteButton = new JButton("Mark as Complete");
-            JButton markUncompletedButton = new JButton("Mark as Uncompleted");
+        // Retrieve recipes from the database
+        Statement statement = connection.createStatement();
+        ResultSet resultSet = statement.executeQuery("SELECT * FROM recipes");
 
-            // Disable buttons for completed recipe and change text color
-            if (recipe.isCompleted()) {
-                markCompleteButton.setEnabled(false);
-                titleLabel.setForeground(Color.GRAY);
-                descriptionLabel.setForeground(Color.GRAY);
-            }
+        // Iterate through the recipes and create labels for each recipe
+        while (resultSet.next()) {
+            String name = resultSet.getString("name");
+            String category = resultSet.getString("category");
+            String tags = resultSet.getString("tags");
 
-            markCompleteButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    try {
-                        // Implement logic to mark the recipe as complete
-                        recipe.setCompleted(true);
+            // Create labels for each recipe
+            JLabel nameLabel = new JLabel(name);
+            JLabel categoryLabel = new JLabel(category);
+            JLabel tagsLabel = new JLabel(tags);
 
-                        // Update the UI to visually differentiate completed recipes
-                        markCompleteButton.setEnabled(false);
-                        titleLabel.setForeground(Color.GRAY);
-                        descriptionLabel.setForeground(Color.GRAY);
-                    } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(viewRecipePanel, "An error occurred while marking the recipe as complete.", "Error", JOptionPane.ERROR_MESSAGE);
-                    }
-                }
-            });
+            // Set borders to make the grid visible
+            nameLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+            categoryLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+            tagsLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
-            // Add labels and buttons to the view recipes panel
-            viewRecipePanel.add(titleLabel);
-            viewRecipePanel.add(descriptionLabel);
-            viewRecipePanel.add(markCompleteButton);
+            // Add labels to the view recipes panel
+            viewRecipePanel.add(nameLabel);
+            viewRecipePanel.add(categoryLabel);
+            viewRecipePanel.add(tagsLabel);
         }
+
+        // Close the database resources
+        resultSet.close();
+        statement.close();
+        connection.close();
 
         // Create a button to go back to the main menu
         JButton backButton = new JButton("Back to Main Menu");
@@ -213,10 +210,12 @@ public class Eateasy extends JFrame {
         viewRecipePanel.add(new JLabel());
         viewRecipePanel.add(new JLabel());
         viewRecipePanel.add(new JLabel());
+        viewRecipePanel.add(new JLabel());
         viewRecipePanel.add(backButton);
 
         getContentPane().add(viewRecipePanel); // Add the view recipes panel to the content pane
     }
+
 
     // Static inner class representing a Recipe
     private static class Recipe {

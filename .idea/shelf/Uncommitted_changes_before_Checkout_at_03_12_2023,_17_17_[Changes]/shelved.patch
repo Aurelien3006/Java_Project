@@ -1,0 +1,308 @@
+Index: src/Eateasy.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import javax.swing.*;\r\nimport java.awt.*;\r\nimport java.awt.event.ActionEvent;\r\nimport java.awt.event.ActionListener;\r\nimport java.sql.Connection;\r\nimport java.sql.DriverManager;\r\nimport java.util.ArrayList;\r\nimport java.util.List;\r\nimport java.sql.*;\r\n\r\npublic class Eateasy extends JFrame {\r\n\r\n    // Components\r\n    private final JPanel mainMenuPanel; // Panel for the main menu\r\n    private JPanel addRecipePanel; // Panel for adding recipes\r\n    private JPanel viewRecipePanel; // Panel for viewing recipes\r\n    private List<Recipe> recipes; // List to store recipes\r\n\r\n    // Database connection parameters\r\n    private static final String DB_URL = \"jdbc:mariadb://localhost:3306/Eateasy\";\r\n    private static final String DB_USER = \"root\";\r\n    private static final String DB_PASSWORD = \"root\";\r\n\r\n    // Constructor for the Eateasy App class\r\n    public Eateasy() {\r\n        setTitle(\"Eateasy\"); // Set the title of the application window\r\n        setSize(600, 400); // Set the size of the window\r\n        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Set default close operation\r\n        setLocationRelativeTo(null); // Center the window on the screen\r\n\r\n        // Initialize the main menu panel and set its layout to FlowLayout\r\n        mainMenuPanel = new JPanel();\r\n        mainMenuPanel.setLayout(new FlowLayout());\r\n\r\n        // Create buttons for adding recipes, viewing recipes, and exiting\r\n        JButton addRecipeButton = new JButton(\"Add Recipe\");\r\n        JButton viewRecipeButton = new JButton(\"View Recipes\");\r\n        JButton exitButton = new JButton(\"Exit\");\r\n\r\n        // Add action listeners to the buttons\r\n        addRecipeButton.addActionListener(new ActionListener() {\r\n            @Override\r\n            public void actionPerformed(ActionEvent e) {\r\n                try {\r\n                    openAddRecipePanel(); // Call the method to open the add recipe panel\r\n                } catch (SQLException ex) {\r\n                    throw new RuntimeException(ex);\r\n                }\r\n            }\r\n        });\r\n\r\n        viewRecipeButton.addActionListener(new ActionListener() {\r\n            @Override\r\n            public void actionPerformed(ActionEvent e) {\r\n                try {\r\n                    openViewRecipePanel(); // Call the method to open the view Recipes panel\r\n                } catch (SQLException ex) {\r\n                    throw new RuntimeException(ex);\r\n                }\r\n            }\r\n        });\r\n\r\n        exitButton.addActionListener(new ActionListener() {\r\n            @Override\r\n            public void actionPerformed(ActionEvent e) {\r\n                System.exit(0); // Exit the application when the exit button is clicked\r\n            }\r\n        });\r\n\r\n        // Add buttons to the main menu panel\r\n        mainMenuPanel.add(addRecipeButton);\r\n        mainMenuPanel.add(viewRecipeButton);\r\n        mainMenuPanel.add(exitButton);\r\n\r\n        recipes = new ArrayList<>(); // Initialize the list of Recipes\r\n\r\n        getContentPane().add(mainMenuPanel); // Add the main menu panel to the content pane\r\n    }\r\n\r\n    // Method to open the add task panel\r\n    private void openAddRecipePanel() throws SQLException {\r\n        mainMenuPanel.setVisible(false); // Hide the main menu panel\r\n\r\n        // Establish a database connection\r\n        Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);\r\n\r\n        // Initialize and configure the add Recipe panel\r\n        addRecipePanel = new JPanel();\r\n        addRecipePanel.setLayout(new GridLayout(5, 2)); // Set the layout to a 5x2 grid\r\n\r\n        // Create labels and text fields for title, description\r\n        JLabel titleLabel = new JLabel(\"Title:\");\r\n        JTextField titleField = new JTextField(20);\r\n\r\n        JLabel descriptionLabel = new JLabel(\"Description:\");\r\n        JTextField descriptionField = new JTextField(300);\r\n\r\n        // Create buttons for saving and going back to the main menu\r\n        JButton saveButton = new JButton(\"Save\");\r\n        saveButton.addActionListener(new ActionListener() {\r\n            @Override\r\n            public void actionPerformed(ActionEvent e) {\r\n                try {\r\n                    String title = titleField.getText();\r\n                    String description = descriptionField.getText();\r\n\r\n                    // Validate input\r\n                    if (title.isEmpty() || description.isEmpty()) {\r\n                        throw new IllegalArgumentException(\"All fields must be filled out.\");\r\n                    }\r\n\r\n                    // SQL query for inserting a new record into the Students table\r\n                    String sql = \"INSERT INTO Recipes (title, description, Tags) VALUES (?, ?, ?)\";\r\n\r\n                    // Close the add recipe panel and return to the main menu\r\n                    addRecipePanel.setVisible(false);\r\n                    mainMenuPanel.setVisible(true);\r\n                } catch (IllegalArgumentException ex) {\r\n                    JOptionPane.showMessageDialog(addRecipePanel, ex.getMessage(), \"Error\", JOptionPane.ERROR_MESSAGE);\r\n                }\r\n            }\r\n        });\r\n\r\n        JButton backButton = new JButton(\"Back to Main Menu\");\r\n        backButton.addActionListener(new ActionListener() {\r\n            @Override\r\n            public void actionPerformed(ActionEvent e) {\r\n                addRecipePanel.setVisible(false);\r\n                mainMenuPanel.setVisible(true);\r\n            }\r\n        });\r\n\r\n        // Add components to the add recipe panel\r\n        addRecipePanel.add(titleLabel);\r\n        addRecipePanel.add(titleField);\r\n        addRecipePanel.add(descriptionLabel);\r\n        addRecipePanel.add(descriptionField);\r\n        addRecipePanel.add(saveButton);\r\n        addRecipePanel.add(backButton);\r\n\r\n        getContentPane().add(addRecipePanel); // Add the add task panel to the content pane\r\n    }\r\n\r\n    // Method to open the view recipes panel\r\n    private void openViewRecipePanel() throws SQLException {\r\n        mainMenuPanel.setVisible(false); // Hide the main menu panel\r\n\r\n        // Establish a database connection\r\n        Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);\r\n\r\n        // Initialize and configure the view recipes panel\r\n        viewRecipePanel = new JPanel();\r\n        viewRecipePanel.setLayout(new GridLayout(recipes.size() + 2, 4)); // Set the layout based on the number of recipes\r\n\r\n        // Create labels for the table headers\r\n        JLabel titleHeader = new JLabel(\"Title\");\r\n        JLabel descriptionHeader = new JLabel(\"Description\");\r\n        JLabel actionHeader = new JLabel(\"Action\");\r\n\r\n        // Add headers to the view recipes panel\r\n        viewRecipePanel.add(titleHeader);\r\n        viewRecipePanel.add(descriptionHeader);\r\n        viewRecipePanel.add(actionHeader);\r\n\r\n        // Iterate through the recipes and create labels and buttons for each recipe\r\n        for (Recipe recipe : recipes) {\r\n            JLabel titleLabel = new JLabel(recipe.getTitle());\r\n            JLabel descriptionLabel = new JLabel(recipe.getDescription());\r\n            JButton markCompleteButton = new JButton(\"Mark as Complete\");\r\n            JButton markUncompletedButton = new JButton(\"Mark as Uncompleted\");\r\n\r\n            // Disable buttons for completed recipe and change text color\r\n            if (recipe.isCompleted()) {\r\n                markCompleteButton.setEnabled(false);\r\n                titleLabel.setForeground(Color.GRAY);\r\n                descriptionLabel.setForeground(Color.GRAY);\r\n            }\r\n\r\n            markCompleteButton.addActionListener(new ActionListener() {\r\n                @Override\r\n                public void actionPerformed(ActionEvent e) {\r\n                    try {\r\n                        // Implement logic to mark the recipe as complete\r\n                        recipe.setCompleted(true);\r\n\r\n                        // Update the UI to visually differentiate completed recipes\r\n                        markCompleteButton.setEnabled(false);\r\n                        titleLabel.setForeground(Color.GRAY);\r\n                        descriptionLabel.setForeground(Color.GRAY);\r\n                    } catch (Exception ex) {\r\n                        JOptionPane.showMessageDialog(viewRecipePanel, \"An error occurred while marking the recipe as complete.\", \"Error\", JOptionPane.ERROR_MESSAGE);\r\n                    }\r\n                }\r\n            });\r\n\r\n            // Add labels and buttons to the view recipes panel\r\n            viewRecipePanel.add(titleLabel);\r\n            viewRecipePanel.add(descriptionLabel);\r\n            viewRecipePanel.add(markCompleteButton);\r\n        }\r\n\r\n        // Create a button to go back to the main menu\r\n        JButton backButton = new JButton(\"Back to Main Menu\");\r\n        backButton.addActionListener(new ActionListener() {\r\n            @Override\r\n            public void actionPerformed(ActionEvent e) {\r\n                viewRecipePanel.setVisible(false);\r\n                mainMenuPanel.setVisible(true);\r\n            }\r\n        });\r\n\r\n        // Add an empty cell for alignment, and the back button to the view recipes panel\r\n        viewRecipePanel.add(new JLabel());\r\n        viewRecipePanel.add(new JLabel());\r\n        viewRecipePanel.add(new JLabel());\r\n        viewRecipePanel.add(backButton);\r\n\r\n        getContentPane().add(viewRecipePanel); // Add the view recipes panel to the content pane\r\n    }\r\n\r\n    // Static inner class representing a Recipe\r\n    private static class Recipe {\r\n        private String title;\r\n        private String description;\r\n        private boolean completed;\r\n\r\n        // Constructor for Recipe\r\n        public Recipe(String title, String description) {\r\n            this.title = title;\r\n            this.description = description;\r\n            this.completed = false;\r\n        }\r\n\r\n        // Getter methods for Recipe attributes\r\n        public String getTitle() {\r\n            return title;\r\n        }\r\n\r\n        public String getDescription() {\r\n            return description;\r\n        }\r\n\r\n        public boolean isCompleted() {\r\n            return completed;\r\n        }\r\n\r\n        // Setter method for marking Recipe as complete\r\n        public void setCompleted(boolean completed) {\r\n            this.completed = completed;\r\n        }\r\n    }\r\n\r\n    // Main method to start the application\r\n    public static void main(String[] args) {\r\n        SwingUtilities.invokeLater(() -> {\r\n            Eateasy app = new Eateasy();\r\n            app.setVisible(true);\r\n        });\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/Eateasy.java b/src/Eateasy.java
+--- a/src/Eateasy.java	
++++ b/src/Eateasy.java	
+@@ -14,10 +14,9 @@
+     private final JPanel mainMenuPanel; // Panel for the main menu
+     private JPanel addRecipePanel; // Panel for adding recipes
+     private JPanel viewRecipePanel; // Panel for viewing recipes
+-    private List<Recipe> recipes; // List to store recipes
+ 
+     // Database connection parameters
+-    private static final String DB_URL = "jdbc:mariadb://localhost:3306/Eateasy";
++    private static final String DB_URL = "jdbc:mariadb://localhost:3306/eateasy";
+     private static final String DB_USER = "root";
+     private static final String DB_PASSWORD = "root";
+ 
+@@ -72,8 +71,6 @@
+         mainMenuPanel.add(viewRecipeButton);
+         mainMenuPanel.add(exitButton);
+ 
+-        recipes = new ArrayList<>(); // Initialize the list of Recipes
+-
+         getContentPane().add(mainMenuPanel); // Add the main menu panel to the content pane
+     }
+ 
+@@ -150,54 +147,52 @@
+ 
+         // Initialize and configure the view recipes panel
+         viewRecipePanel = new JPanel();
+-        viewRecipePanel.setLayout(new GridLayout(recipes.size() + 2, 4)); // Set the layout based on the number of recipes
++        GridLayout gridLayout = new GridLayout(0, 3);
++        gridLayout.setHgap(5); // Add horizontal gap between cells
++        gridLayout.setVgap(5); // Add vertical gap between cells
++        viewRecipePanel.setLayout(gridLayout);
+ 
+         // Create labels for the table headers
+-        JLabel titleHeader = new JLabel("Title");
+-        JLabel descriptionHeader = new JLabel("Description");
+-        JLabel actionHeader = new JLabel("Action");
++        JLabel nameHeader = new JLabel("Name");
++        JLabel categoryHeader = new JLabel("Category");
++        JLabel tagsHeader = new JLabel("Tags");
+ 
+         // Add headers to the view recipes panel
+-        viewRecipePanel.add(titleHeader);
+-        viewRecipePanel.add(descriptionHeader);
+-        viewRecipePanel.add(actionHeader);
++        viewRecipePanel.add(nameHeader);
++        viewRecipePanel.add(categoryHeader);
++        viewRecipePanel.add(tagsHeader);
++
+ 
+-        // Iterate through the recipes and create labels and buttons for each recipe
+-        for (Recipe recipe : recipes) {
+-            JLabel titleLabel = new JLabel(recipe.getTitle());
+-            JLabel descriptionLabel = new JLabel(recipe.getDescription());
+-            JButton markCompleteButton = new JButton("Mark as Complete");
+-            JButton markUncompletedButton = new JButton("Mark as Uncompleted");
++        // Retrieve recipes from the database
++        Statement statement = connection.createStatement();
++        ResultSet resultSet = statement.executeQuery("SELECT * FROM recipes");
+ 
+-            // Disable buttons for completed recipe and change text color
+-            if (recipe.isCompleted()) {
+-                markCompleteButton.setEnabled(false);
+-                titleLabel.setForeground(Color.GRAY);
+-                descriptionLabel.setForeground(Color.GRAY);
+-            }
++        // Iterate through the recipes and create labels for each recipe
++        while (resultSet.next()) {
++            String name = resultSet.getString("name");
++            String category = resultSet.getString("category");
++            String tags = resultSet.getString("tags");
++
++            // Create labels for each recipe
++            JLabel nameLabel = new JLabel(name);
++            JLabel categoryLabel = new JLabel(category);
++            JLabel tagsLabel = new JLabel(tags);
+ 
+-            markCompleteButton.addActionListener(new ActionListener() {
+-                @Override
+-                public void actionPerformed(ActionEvent e) {
+-                    try {
+-                        // Implement logic to mark the recipe as complete
+-                        recipe.setCompleted(true);
++            // Set borders to make the grid visible
++            nameLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
++            categoryLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
++            tagsLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+ 
+-                        // Update the UI to visually differentiate completed recipes
+-                        markCompleteButton.setEnabled(false);
+-                        titleLabel.setForeground(Color.GRAY);
+-                        descriptionLabel.setForeground(Color.GRAY);
+-                    } catch (Exception ex) {
+-                        JOptionPane.showMessageDialog(viewRecipePanel, "An error occurred while marking the recipe as complete.", "Error", JOptionPane.ERROR_MESSAGE);
+-                    }
+-                }
+-            });
++            // Add labels to the view recipes panel
++            viewRecipePanel.add(nameLabel);
++            viewRecipePanel.add(categoryLabel);
++            viewRecipePanel.add(tagsLabel);
++        }
+ 
+-            // Add labels and buttons to the view recipes panel
+-            viewRecipePanel.add(titleLabel);
+-            viewRecipePanel.add(descriptionLabel);
+-            viewRecipePanel.add(markCompleteButton);
+-        }
++        // Close the database resources
++        resultSet.close();
++        statement.close();
++        connection.close();
+ 
+         // Create a button to go back to the main menu
+         JButton backButton = new JButton("Back to Main Menu");
+@@ -210,6 +205,7 @@
+         });
+ 
+         // Add an empty cell for alignment, and the back button to the view recipes panel
++        viewRecipePanel.add(new JLabel());
+         viewRecipePanel.add(new JLabel());
+         viewRecipePanel.add(new JLabel());
+         viewRecipePanel.add(new JLabel());
+Index: Java_Project.iml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<module type=\"JAVA_MODULE\" version=\"4\">\r\n  <component name=\"NewModuleRootManager\" inherit-compiler-output=\"true\">\r\n    <exclude-output />\r\n    <content url=\"file://$MODULE_DIR$\">\r\n      <sourceFolder url=\"file://$MODULE_DIR$/src\" isTestSource=\"false\" />\r\n    </content>\r\n    <orderEntry type=\"inheritedJdk\" />\r\n    <orderEntry type=\"sourceFolder\" forTests=\"false\" />\r\n    <orderEntry type=\"module-library\">\r\n      <library>\r\n        <CLASSES>\r\n          <root url=\"jar://$MODULE_DIR$/../Module4/src/mariadb-java-client-3.3.0.jar!/\" />\r\n        </CLASSES>\r\n        <JAVADOC />\r\n        <SOURCES />\r\n      </library>\r\n    </orderEntry>\r\n  </component>\r\n</module>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/Java_Project.iml b/Java_Project.iml
+--- a/Java_Project.iml	
++++ b/Java_Project.iml	
+@@ -10,7 +10,7 @@
+     <orderEntry type="module-library">
+       <library>
+         <CLASSES>
+-          <root url="jar://$MODULE_DIR$/../Module4/src/mariadb-java-client-3.3.0.jar!/" />
++          <root url="jar://$MODULE_DIR$/src/mariadb-java-client-3.3.0.jar!/" />
+         </CLASSES>
+         <JAVADOC />
+         <SOURCES />
+Index: .idea/dataSources.xml
+===================================================================
+diff --git a/.idea/dataSources.xml b/.idea/dataSources.xml
+new file mode 100644
+--- /dev/null	
++++ b/.idea/dataSources.xml	
+@@ -0,0 +1,12 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
++    <data-source source="LOCAL" name="eateasy@localhost" uuid="31feeb0d-2d8d-496a-909c-274fdf99dd74">
++      <driver-ref>mariadb</driver-ref>
++      <synchronize>true</synchronize>
++      <jdbc-driver>org.mariadb.jdbc.Driver</jdbc-driver>
++      <jdbc-url>jdbc:mariadb://localhost:3306/eateasy</jdbc-url>
++      <working-dir>$ProjectFileDir$</working-dir>
++    </data-source>
++  </component>
++</project>
+\ No newline at end of file
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"AutoImportSettings\">\r\n    <option name=\"autoReloadType\" value=\"SELECTIVE\" />\r\n  </component>\r\n  <component name=\"ChangeListManager\">\r\n    <list default=\"true\" id=\"8742c7f2-2487-4dd6-b2fd-a8a735841782\" name=\"Changes\" comment=\"First code with list type application for the recipes\" />\r\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\r\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\r\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\r\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\r\n  </component>\r\n  <component name=\"Git.Settings\">\r\n    <option name=\"RECENT_GIT_ROOT_PATH\" value=\"$PROJECT_DIR$\" />\r\n  </component>\r\n  <component name=\"ProjectColorInfo\">{\r\n  &quot;associatedIndex&quot;: 6\r\n}</component>\r\n  <component name=\"ProjectId\" id=\"2YvYyJawUvPFI7q05g4wga0XESS\" />\r\n  <component name=\"ProjectLevelVcsManager\" settingsEditedManually=\"true\" />\r\n  <component name=\"ProjectViewState\">\r\n    <option name=\"hideEmptyMiddlePackages\" value=\"true\" />\r\n    <option name=\"showLibraryContents\" value=\"true\" />\r\n  </component>\r\n  <component name=\"PropertiesComponent\">{\r\n  &quot;keyToString&quot;: {\r\n    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,\r\n    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,\r\n    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,\r\n    &quot;git-widget-placeholder&quot;: &quot;master&quot;,\r\n    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,\r\n    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,\r\n    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,\r\n    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,\r\n    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;\r\n  }\r\n}</component>\r\n  <component name=\"SpellCheckerSettings\" RuntimeDictionaries=\"0\" Folders=\"0\" CustomDictionaries=\"0\" DefaultDictionary=\"application-level\" UseSingleDictionary=\"true\" transferred=\"true\" />\r\n  <component name=\"TaskManager\">\r\n    <task active=\"true\" id=\"Default\" summary=\"Default task\">\r\n      <changelist id=\"8742c7f2-2487-4dd6-b2fd-a8a735841782\" name=\"Changes\" comment=\"\" />\r\n      <created>1701407772552</created>\r\n      <option name=\"number\" value=\"Default\" />\r\n      <option name=\"presentableId\" value=\"Default\" />\r\n      <updated>1701407772552</updated>\r\n      <workItem from=\"1701407773622\" duration=\"886000\" />\r\n      <workItem from=\"1701408752101\" duration=\"903000\" />\r\n    </task>\r\n    <task id=\"LOCAL-00001\" summary=\"First code with list type application for the recipes\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1701409599083</created>\r\n      <option name=\"number\" value=\"00001\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00001\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1701409599083</updated>\r\n    </task>\r\n    <option name=\"localTasksCounter\" value=\"2\" />\r\n    <servers />\r\n  </component>\r\n  <component name=\"TypeScriptGeneratedFilesManager\">\r\n    <option name=\"version\" value=\"3\" />\r\n  </component>\r\n  <component name=\"Vcs.Log.Tabs.Properties\">\r\n    <option name=\"TAB_STATES\">\r\n      <map>\r\n        <entry key=\"MAIN\">\r\n          <value>\r\n            <State />\r\n          </value>\r\n        </entry>\r\n      </map>\r\n    </option>\r\n  </component>\r\n  <component name=\"VcsManagerConfiguration\">\r\n    <MESSAGE value=\"First code with list type application for the recipes\" />\r\n    <option name=\"LAST_COMMIT_MESSAGE\" value=\"First code with list type application for the recipes\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+--- a/.idea/workspace.xml	
++++ b/.idea/workspace.xml	
+@@ -4,13 +4,32 @@
+     <option name="autoReloadType" value="SELECTIVE" />
+   </component>
+   <component name="ChangeListManager">
+-    <list default="true" id="8742c7f2-2487-4dd6-b2fd-a8a735841782" name="Changes" comment="First code with list type application for the recipes" />
++    <list default="true" id="8742c7f2-2487-4dd6-b2fd-a8a735841782" name="Changes" comment="uiDesigner.xml &amp; workspace.xml">
++      <change afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/Java_Project.iml" beforeDir="false" afterPath="$PROJECT_DIR$/Java_Project.iml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/src/DatabaseCreator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/DatabaseCreator.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/src/Eateasy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Eateasy.java" afterDir="false" />
++    </list>
+     <option name="SHOW_DIALOG" value="false" />
+     <option name="HIGHLIGHT_CONFLICTS" value="true" />
+     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+     <option name="LAST_RESOLUTION" value="IGNORE" />
+   </component>
+   <component name="Git.Settings">
++    <favorite-branches>
++      <branch-storage>
++        <map>
++          <entry type="REMOTE">
++            <value>
++              <list>
++                <branch-info repo="$PROJECT_DIR$" source="origin/aurel" />
++              </list>
++            </value>
++          </entry>
++        </map>
++      </branch-storage>
++    </favorite-branches>
+     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+   </component>
+   <component name="ProjectColorInfo">{
+@@ -22,19 +41,28 @@
+     <option name="hideEmptyMiddlePackages" value="true" />
+     <option name="showLibraryContents" value="true" />
+   </component>
+-  <component name="PropertiesComponent">{
+-  &quot;keyToString&quot;: {
+-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
++  <component name="PropertiesComponent"><![CDATA[{
++  "keyToString": {
++    "RunOnceActivity.OpenProjectViewOnStart": "true",
++    "RunOnceActivity.ShowReadmeOnStart": "true",
++    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
++    "WebServerToolWindowFactoryState": "false",
++    "git-widget-placeholder": "aurel",
++    "node.js.detected.package.eslint": "true",
++    "node.js.detected.package.tslint": "true",
++    "node.js.selected.package.eslint": "(autodetect)",
++    "node.js.selected.package.tslint": "(autodetect)",
++    "project.structure.last.edited": "Modules",
++    "project.structure.proportion": "0.15",
++    "project.structure.side.proportion": "0.2",
++    "vue.rearranger.settings.migration": "true"
++  },
++  "keyToStringList": {
++    "DatabaseDriversLRU": [
++      "mariadb"
++    ]
+   }
+-}</component>
++}]]></component>
+   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+   <component name="TaskManager">
+     <task active="true" id="Default" summary="Default task">
+@@ -44,7 +72,7 @@
+       <option name="presentableId" value="Default" />
+       <updated>1701407772552</updated>
+       <workItem from="1701407773622" duration="886000" />
+-      <workItem from="1701408752101" duration="903000" />
++      <workItem from="1701408752101" duration="2680000" />
+     </task>
+     <task id="LOCAL-00001" summary="First code with list type application for the recipes">
+       <option name="closed" value="true" />
+@@ -54,7 +82,15 @@
+       <option name="project" value="LOCAL" />
+       <updated>1701409599083</updated>
+     </task>
+-    <option name="localTasksCounter" value="2" />
++    <task id="LOCAL-00002" summary="uiDesigner.xml &amp; workspace.xml">
++      <option name="closed" value="true" />
++      <created>1701409861333</created>
++      <option name="number" value="00002" />
++      <option name="presentableId" value="LOCAL-00002" />
++      <option name="project" value="LOCAL" />
++      <updated>1701409861333</updated>
++    </task>
++    <option name="localTasksCounter" value="3" />
+     <servers />
+   </component>
+   <component name="TypeScriptGeneratedFilesManager">
+@@ -73,6 +109,7 @@
+   </component>
+   <component name="VcsManagerConfiguration">
+     <MESSAGE value="First code with list type application for the recipes" />
+-    <option name="LAST_COMMIT_MESSAGE" value="First code with list type application for the recipes" />
++    <MESSAGE value="uiDesigner.xml &amp; workspace.xml" />
++    <option name="LAST_COMMIT_MESSAGE" value="uiDesigner.xml &amp; workspace.xml" />
+   </component>
+ </project>
+\ No newline at end of file
+Index: src/DatabaseCreator.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import java.sql.*;\r\nimport java.util.Scanner;\r\n\r\npublic class DatabaseCreator {\r\n\r\n    public static void main(String[] args) {\r\n        createDatabase();\r\n    }\r\n\r\n    private static void createDatabase() {\r\n        try (Connection connection = DriverManager.getConnection(\"jdbc:mariadb://localhost:3300/eateasy\",\r\n                \"root\", \"root\")) {\r\n\r\n            // Check if the table exists, if not, create it\r\n            if (!tableExists(connection)) {\r\n                createTable(connection);\r\n            }\r\n\r\n            // Get user input for recipe details\r\n            Scanner scanner = new Scanner(System.in);\r\n            System.out.println(\"How many recipes do you want to enter: \");\r\n            int count = scanner.nextInt();\r\n\r\n            while(count!=0){\r\n                createRecipe(connection);\r\n                --count;\r\n            }\r\n\r\n        } catch (SQLException e) {\r\n            e.printStackTrace();\r\n        }\r\n    }\r\n\r\n    private static boolean tableExists(Connection connection) throws SQLException {\r\n        ResultSet tables = connection.getMetaData().getTables(null, null, \"recipes\", null);\r\n        return tables.next();\r\n    }\r\n\r\n    private static void createTable(Connection connection) throws SQLException {\r\n        String createTableSQL = \"CREATE TABLE recipes \" +\r\n                \"(recipe_id INT AUTO_INCREMENT PRIMARY KEY, \" +\r\n                \"name VARCHAR(255), \" +\r\n                \"category VARCHAR(255),\" +\r\n                \"tags VARCHAR(255), \" +\r\n                \"file_link VARCHAR(255))\";\r\n        try (PreparedStatement preparedStatement = connection.prepareStatement(createTableSQL)) {\r\n            preparedStatement.executeUpdate();\r\n        }\r\n    }\r\n\r\n\r\n    private static void insertRecipe(Connection connection, String name,String category, String tags, String fileLink)\r\n            throws SQLException {\r\n        String insertSQL = \"INSERT INTO recipes (name, category, tags, file_link) VALUES (?, ?, ?, ?)\";\r\n        try (PreparedStatement preparedStatement = connection.prepareStatement(insertSQL)) {\r\n            preparedStatement.setString(1, name);\r\n            preparedStatement.setString(2, category);\r\n            preparedStatement.setString(3, tags);\r\n            preparedStatement.setString(4, fileLink);\r\n            preparedStatement.executeUpdate();\r\n        }\r\n    }\r\n\r\n    private static void createRecipe(Connection connection) throws SQLException {\r\n        // Get user input for recipe details\r\n        Scanner scanner = new Scanner(System.in);\r\n        System.out.print(\"Enter the name of the recipe: \");\r\n        String name = scanner.nextLine();\r\n\r\n        System.out.print(\"Enter the category of the recipe (appetizer,main,dessert): \");\r\n        String category = scanner.nextLine();\r\n\r\n        System.out.print(\"Enter tags (comma-separated): \");\r\n        String tags = scanner.nextLine();\r\n\r\n        System.out.print(\"Enter the link to file.txt: \");\r\n        String fileLink = scanner.nextLine();\r\n\r\n        // Insert into the database\r\n        insertRecipe(connection, name, category, tags, fileLink);\r\n\r\n        System.out.println(\"Recipe added to the database successfully.\");\r\n    }\r\n}\r\n
+===================================================================
+diff --git a/src/DatabaseCreator.java b/src/DatabaseCreator.java
+--- a/src/DatabaseCreator.java	
++++ b/src/DatabaseCreator.java	
+@@ -8,7 +8,7 @@
+     }
+ 
+     private static void createDatabase() {
+-        try (Connection connection = DriverManager.getConnection("jdbc:mariadb://localhost:3300/eateasy",
++        try (Connection connection = DriverManager.getConnection("jdbc:mariadb://localhost:3306/eateasy",
+                 "root", "root")) {
+ 
+             // Check if the table exists, if not, create it
