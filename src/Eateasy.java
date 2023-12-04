@@ -2,10 +2,15 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.*;
 
 public class Eateasy extends JFrame {
+
+    // Components
     private final JPanel mainMenuPanel; // Panel for the main menu
     private JPanel addRecipePanel; // Panel for adding recipes
     private JPanel viewRecipePanel; // Panel for viewing recipes
@@ -36,14 +41,22 @@ public class Eateasy extends JFrame {
         addRecipeButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                openAddRecipePanel(); // Call the method to open the add recipe panel
+                try {
+                    openAddRecipePanel(); // Call the method to open the add recipe panel
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
             }
         });
 
         viewRecipeButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                openViewRecipePanel(); // Call the method to open the view Recipes panel
+                try {
+                    openViewRecipePanel(); // Call the method to open the view Recipes panel
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
             }
         });
 
@@ -65,8 +78,11 @@ public class Eateasy extends JFrame {
     }
 
     // Method to open the add task panel
-    private void openAddRecipePanel() {
+    private void openAddRecipePanel() throws SQLException {
         mainMenuPanel.setVisible(false); // Hide the main menu panel
+
+        // Establish a database connection
+        Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
 
         // Initialize and configure the add Recipe panel
         addRecipePanel = new JPanel();
@@ -77,7 +93,7 @@ public class Eateasy extends JFrame {
         JTextField titleField = new JTextField(20);
 
         JLabel descriptionLabel = new JLabel("Description:");
-        JTextField descriptionField = new JTextField(20);
+        JTextField descriptionField = new JTextField(300);
 
         // Create buttons for saving and going back to the main menu
         JButton saveButton = new JButton("Save");
@@ -93,10 +109,8 @@ public class Eateasy extends JFrame {
                         throw new IllegalArgumentException("All fields must be filled out.");
                     }
 
-
-                    // Create a new recipe and add it to the list of recipes
-                    Recipe newRecipe = new Recipe(title, description);
-                    recipes.add(newRecipe);
+                    // SQL query for inserting a new record into the Students table
+                    String sql = "INSERT INTO Recipes (title, description, Tags) VALUES (?, ?, ?)";
 
                     // Close the add recipe panel and return to the main menu
                     addRecipePanel.setVisible(false);
@@ -128,8 +142,11 @@ public class Eateasy extends JFrame {
     }
 
     // Method to open the view recipes panel
-    private void openViewRecipePanel() {
+    private void openViewRecipePanel() throws SQLException {
         mainMenuPanel.setVisible(false); // Hide the main menu panel
+
+        // Establish a database connection
+        Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
 
         // Initialize and configure the view recipes panel
         viewRecipePanel = new JPanel();
