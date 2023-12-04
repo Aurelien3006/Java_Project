@@ -7,7 +7,6 @@ import java.util.List;
 
 public class Eateasy extends JFrame {
     private final JPanel mainMenuPanel; // Panel for the main menu
-    private JPanel addRecipePanel; // Panel for adding recipes
     private JPanel viewRecipePanel; // Panel for viewing recipes
     private List<Recipe> recipes; // List to store recipes
 
@@ -66,65 +65,7 @@ public class Eateasy extends JFrame {
 
     // Method to open the add task panel
     private void openAddRecipePanel() {
-        mainMenuPanel.setVisible(false); // Hide the main menu panel
-
-        // Initialize and configure the add Recipe panel
-        addRecipePanel = new JPanel();
-        addRecipePanel.setLayout(new GridLayout(5, 2)); // Set the layout to a 5x2 grid
-
-        // Create labels and text fields for title, description
-        JLabel titleLabel = new JLabel("Title:");
-        JTextField titleField = new JTextField(20);
-
-        JLabel descriptionLabel = new JLabel("Description:");
-        JTextField descriptionField = new JTextField(20);
-
-        // Create buttons for saving and going back to the main menu
-        JButton saveButton = new JButton("Save");
-        saveButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    String title = titleField.getText();
-                    String description = descriptionField.getText();
-
-                    // Validate input
-                    if (title.isEmpty() || description.isEmpty()) {
-                        throw new IllegalArgumentException("All fields must be filled out.");
-                    }
-
-
-                    // Create a new recipe and add it to the list of recipes
-                    Recipe newRecipe = new Recipe(title, description);
-                    recipes.add(newRecipe);
-
-                    // Close the add recipe panel and return to the main menu
-                    addRecipePanel.setVisible(false);
-                    mainMenuPanel.setVisible(true);
-                } catch (IllegalArgumentException ex) {
-                    JOptionPane.showMessageDialog(addRecipePanel, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                }
-            }
-        });
-
-        JButton backButton = new JButton("Back to Main Menu");
-        backButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                addRecipePanel.setVisible(false);
-                mainMenuPanel.setVisible(true);
-            }
-        });
-
-        // Add components to the add recipe panel
-        addRecipePanel.add(titleLabel);
-        addRecipePanel.add(titleField);
-        addRecipePanel.add(descriptionLabel);
-        addRecipePanel.add(descriptionField);
-        addRecipePanel.add(saveButton);
-        addRecipePanel.add(backButton);
-
-        getContentPane().add(addRecipePanel); // Add the add task panel to the content pane
+        new RecipeForm();
     }
 
     // Method to open the view recipes panel
