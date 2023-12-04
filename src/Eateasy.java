@@ -9,12 +9,10 @@ import java.util.List;
 import java.sql.*;
 
 public class Eateasy extends JFrame {
-
     // Components
     private final JPanel mainMenuPanel; // Panel for the main menu
-    private JPanel addRecipePanel; // Panel for adding recipes
     private JPanel viewRecipePanel; // Panel for viewing recipes
-    private List<Recipe> recipes; // List to store recipes
+    private final List<Recipe> recipes; // List to store recipes
 
     // Database connection parameters
     private static final String DB_URL = "jdbc:mariadb://localhost:3306/Eateasy";
@@ -77,68 +75,9 @@ public class Eateasy extends JFrame {
         getContentPane().add(mainMenuPanel); // Add the main menu panel to the content pane
     }
 
-    // Method to open the add task panel
-    private void openAddRecipePanel() throws SQLException {
-        mainMenuPanel.setVisible(false); // Hide the main menu panel
-
-        // Establish a database connection
-        Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
-
-        // Initialize and configure the add Recipe panel
-        addRecipePanel = new JPanel();
-        addRecipePanel.setLayout(new GridLayout(5, 2)); // Set the layout to a 5x2 grid
-
-        // Create labels and text fields for title, description
-        JLabel titleLabel = new JLabel("Title:");
-        JTextField titleField = new JTextField(20);
-
-        JLabel descriptionLabel = new JLabel("Description:");
-        JTextField descriptionField = new JTextField(300);
-
-        // Create buttons for saving and going back to the main menu
-        JButton saveButton = new JButton("Save");
-        saveButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    String title = titleField.getText();
-                    String description = descriptionField.getText();
-
-                    // Validate input
-                    if (title.isEmpty() || description.isEmpty()) {
-                        throw new IllegalArgumentException("All fields must be filled out.");
-                    }
-
-                    // SQL query for inserting a new record into the Students table
-                    String sql = "INSERT INTO Recipes (title, description, Tags) VALUES (?, ?, ?)";
-
-                    // Close the add recipe panel and return to the main menu
-                    addRecipePanel.setVisible(false);
-                    mainMenuPanel.setVisible(true);
-                } catch (IllegalArgumentException ex) {
-                    JOptionPane.showMessageDialog(addRecipePanel, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                }
-            }
-        });
-
-        JButton backButton = new JButton("Back to Main Menu");
-        backButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                addRecipePanel.setVisible(false);
-                mainMenuPanel.setVisible(true);
-            }
-        });
-
-        // Add components to the add recipe panel
-        addRecipePanel.add(titleLabel);
-        addRecipePanel.add(titleField);
-        addRecipePanel.add(descriptionLabel);
-        addRecipePanel.add(descriptionField);
-        addRecipePanel.add(saveButton);
-        addRecipePanel.add(backButton);
-
-        getContentPane().add(addRecipePanel); // Add the add task panel to the content pane
+    // Method to open the add recipe panel
+    private void openAddRecipePanel() {
+        new RecipeForm();
     }
 
     // Method to open the view recipes panel
