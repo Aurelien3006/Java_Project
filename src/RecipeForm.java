@@ -6,11 +6,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 public class RecipeForm extends JFrame {
-    private JTextField recipeNameField;
-    private JSpinner personSpinner;
-    private JTextArea ingredientsArea;
-    private JTextArea stepsArea;
-    private JComboBox<String> categoryComboBox;
+    private final JTextField recipeNameField;
+    private final JSpinner personSpinner;
+    private final JTextArea ingredientsArea;
+    private final JTextArea stepsArea;
+    private final JComboBox<String> categoryComboBox;
     private static final String RECIPE_FOLDER = "./recipe_files";
 
     public RecipeForm() {
@@ -94,10 +94,10 @@ public class RecipeForm extends JFrame {
     private void saveRecipe() {
         // Fetch values from the form
         String recipeName = recipeNameField.getText();
-        int persons = (int) personSpinner.getValue();
+        //int persons = (int) personSpinner.getValue();
         String ingredients = ingredientsArea.getText();
         String steps = stepsArea.getText();
-        String category = (String) categoryComboBox.getSelectedItem();
+        //String category = (String) categoryComboBox.getSelectedItem();
 
         // Create a new text file
         String fileName = RECIPE_FOLDER + File.separator + recipeName + ".txt";

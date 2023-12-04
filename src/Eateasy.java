@@ -8,7 +8,7 @@ import java.util.List;
 public class Eateasy extends JFrame {
     private final JPanel mainMenuPanel; // Panel for the main menu
     private JPanel viewRecipePanel; // Panel for viewing recipes
-    private List<Recipe> recipes; // List to store recipes
+    private final List<Recipe> recipes; // List to store recipes
 
     // Database connection parameters
     private static final String DB_URL = "jdbc:mariadb://localhost:3306/Eateasy";
