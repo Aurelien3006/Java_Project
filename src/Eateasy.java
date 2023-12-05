@@ -1,17 +1,20 @@
 import javax.swing.*;
 import java.awt.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.*;
 
 public class Eateasy extends JFrame {
+
     // Components
     private final JPanel mainMenuPanel; // Panel for the main menu
     private JPanel viewRecipePanel; // Panel for viewing recipes
 
-
     // Database connection parameters
-    private static final String DB_URL = "jdbc:mariadb://localhost:3306/eateasy";
+    private static final String DB_URL = "jdbc:mariadb://localhost:3300/eateasy";
     private static final String DB_USER = "root";
     private static final String DB_PASSWORD = "root";
+
 
     // Constructor for the Eateasy App class
     public Eateasy() {
@@ -27,6 +30,7 @@ public class Eateasy extends JFrame {
         // Create buttons for adding recipes, viewing recipes, and exiting
         JButton addRecipeButton = new JButton("Add Recipe");
         JButton viewRecipeButton = new JButton("View Recipes");
+        JButton searchRecipeButton = new JButton("Search Recipes");
         JButton exitButton = new JButton("Exit");
 
         // Add action listeners to the buttons
@@ -42,6 +46,15 @@ public class Eateasy extends JFrame {
             }
         });
 
+        searchRecipeButton.addActionListener(e -> {
+            try{
+                openSearchRecipePanel();
+            }
+            catch (SQLException ex){
+                throw new RuntimeException(ex);
+            }
+        });
+
         exitButton.addActionListener(e -> {
             System.exit(0); // Exit the application when the exit button is clicked
         });
@@ -49,11 +62,16 @@ public class Eateasy extends JFrame {
         // Add buttons to the main menu panel
         mainMenuPanel.add(addRecipeButton);
         mainMenuPanel.add(viewRecipeButton);
+        mainMenuPanel.add(searchRecipeButton);
         mainMenuPanel.add(exitButton);
 
 
 
         getContentPane().add(mainMenuPanel); // Add the main menu panel to the content pane
+
+    }
+    private void openSearchRecipePanel() throws SQLException {
+        new Recipesearch();
     }
 
     // Method to open the add recipe panel
@@ -114,7 +132,7 @@ public class Eateasy extends JFrame {
         establishDatabaseConnection().close();
 
         // Create a button to go back to the main menu
-        JButton backButton = new JButton("Back to Main Menu");
+        JButton backButton = new JButton("Back");
         backButton.addActionListener(e -> {
             viewRecipePanel.setVisible(false);
             mainMenuPanel.setVisible(true);
