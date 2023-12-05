@@ -8,7 +8,7 @@ import java.sql.SQLException;
 
 public class RecipeForm extends JFrame {
     private final JTextField recipeNameField;
-    private final JSpinner personSpinner;
+    //private final JSpinner personSpinner;
     private final JTextArea ingredientsArea;
     private final JTextArea stepsArea;
     private final JComboBox<String> categoryComboBox;
@@ -19,15 +19,15 @@ public class RecipeForm extends JFrame {
         setTitle("Add a recipe to database");
         setSize(600, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new GridLayout(6, 2));
+        setLayout(new GridLayout(5, 2));
 
         // Create form components
         JLabel nameLabel = new JLabel("Recipe Name: ");
         recipeNameField = new JTextField();
 
-        JLabel personLabel = new JLabel("Number of Persons: ");
-        SpinnerNumberModel spinnerModel = new SpinnerNumberModel(1, 1, 12, 1);
-        personSpinner = new JSpinner(spinnerModel);
+        //JLabel personLabel = new JLabel("Number of Persons: ");
+        //SpinnerNumberModel spinnerModel = new SpinnerNumberModel(1, 1, 12, 1);
+        //personSpinner = new JSpinner(spinnerModel);
 
         JLabel ingredientsLabel = new JLabel("Ingredients (Separate with a semi-colon): ");
         ingredientsArea = new JTextArea();
@@ -44,7 +44,7 @@ public class RecipeForm extends JFrame {
         submitButton.addActionListener(e -> {
             // Fetch values from the form
             String recipeName = recipeNameField.getText();
-            int persons = (int) personSpinner.getValue();
+            //int persons = (int) personSpinner.getValue();
             String ingredients = ingredientsArea.getText();
             String steps = stepsArea.getText();
             String category = (String) categoryComboBox.getSelectedItem();
@@ -68,8 +68,8 @@ public class RecipeForm extends JFrame {
         add(nameLabel);
         add(recipeNameField);
 
-        add(personLabel);
-        add(personSpinner);
+        //add(personLabel);
+        //add(personSpinner);
 
         add(ingredientsLabel);
         add(new JScrollPane(ingredientsArea));
@@ -144,7 +144,7 @@ public class RecipeForm extends JFrame {
     private void clearForm() {
         // Clear form fields
         recipeNameField.setText("");
-        personSpinner.setValue(1);
+        //personSpinner.setValue(1);
         ingredientsArea.setText("");
         stepsArea.setText("");
         categoryComboBox.setSelectedIndex(0);

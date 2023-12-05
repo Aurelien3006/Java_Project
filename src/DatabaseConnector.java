@@ -8,11 +8,17 @@ public class DatabaseConnector {
         List<Recipe> recipes = new ArrayList<>();
 
         try (Connection connection = Eateasy.establishDatabaseConnection()) {
-            String query = "SELECT * FROM recipes WHERE category = ? AND tags LIKE ?";
-            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            // Append conditions for each tag using LIKE
+
+            try (PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM recipes WHERE category = ?" + " AND tags LIKE ?".repeat(tags.size()))) {
                 preparedStatement.setString(1, category);
-                String tagsPattern = "%" + String.join("%", tags) + "%";
-                preparedStatement.setString(2, tagsPattern);
+
+                // Set parameters for each tag
+                for (int i = 0; i < tags.size(); i++) {
+                    String tagsPattern = "%" + tags.get(i) + "%";
+                    preparedStatement.setString(i + 2, tagsPattern); // +2 because 1 is for category
+                }
 
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
                     while (resultSet.next()) {
@@ -33,6 +39,7 @@ public class DatabaseConnector {
 
         return recipes;
     }
+
     public static Recipe getRecipeByName(String name) {
         try (Connection connection = Eateasy.establishDatabaseConnection()) {
             String query = "SELECT * FROM recipes WHERE name = ?";

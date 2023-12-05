@@ -19,12 +19,12 @@ public class Eateasy extends JFrame {
     // Database connection parameters
     private static final String DB_URL = "jdbc:mariadb://localhost:3306/eateasy";
     private static final String DB_USER = "root";
-    private static final String DB_PASSWORD = "root";
+    private static final String DB_PASSWORD = "admin";
 
-    private JTextField categoryTextField;
     private JTextField tagsTextField;
     private JTextArea resultTextArea;
     private JTextArea detailsTextArea;
+    private final JComboBox<String> categoryComboBox;
 
     // Constructor for the Eateasy App class
     public Eateasy() {
@@ -78,11 +78,12 @@ public class Eateasy extends JFrame {
 
 
         getContentPane().add(mainMenuPanel); // Add the main menu panel to the content pane
+
+        categoryComboBox = new JComboBox<>(new String[]{"Appetizer", "Main", "Dessert"});
     }
     private void openSearchRecipePanel() throws SQLException {
         mainMenuPanel.setVisible(false);
 
-        categoryTextField = new JTextField();
         tagsTextField = new JTextField();
         resultTextArea = new JTextArea();
         detailsTextArea = new JTextArea();
@@ -191,14 +192,19 @@ public class Eateasy extends JFrame {
     private JPanel createSearchPanel() {
         JPanel searchPanel = new JPanel();
         searchPanel.setLayout(new GridLayout(3, 2));
-        searchPanel.add(new JLabel("Enter category:"));
-        searchPanel.add(categoryTextField);
+
+        searchPanel.add(new JLabel("Select category:"));
+        searchPanel.add(categoryComboBox);
+
         searchPanel.add(new JLabel("Enter ingredients (comma-separated):"));
         searchPanel.add(tagsTextField);
         searchPanel.add(createSearchButton());
         searchPanel.add(createBackButton());
+
         return searchPanel;
     }
+
+
     private JButton createBackButton(){
         //to go back on the menu
         JButton backButton = new JButton("Back");
@@ -209,7 +215,14 @@ public class Eateasy extends JFrame {
     private JButton createSearchButton() {
         JButton searchButton = new JButton("Search Recipes");
         searchButton.addActionListener(e -> {
-            String categoryInput = categoryTextField.getText();
+            String categoryInput = (String) categoryComboBox.getSelectedItem();
+
+            assert categoryInput != null;
+            if (categoryInput.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Please select a category.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
             String tagsInput = tagsTextField.getText();
 
             if (tagsInput.isEmpty()) {
@@ -232,6 +245,7 @@ public class Eateasy extends JFrame {
         });
         return searchButton;
     }
+
 
     private void displayRecipeDetails(String selectedRecipeName) {
         Recipe selectedRecipe = DatabaseConnector.getRecipeByName(selectedRecipeName);
