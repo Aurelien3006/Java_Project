@@ -1,13 +1,8 @@
 import javax.swing.*;
 import java.awt.*;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.*;
-import java.util.List;
-import java.util.Arrays;
 
 public class Eateasy extends JFrame {
 
@@ -15,16 +10,11 @@ public class Eateasy extends JFrame {
     private final JPanel mainMenuPanel; // Panel for the main menu
     private JPanel viewRecipePanel; // Panel for viewing recipes
 
-
     // Database connection parameters
-    private static final String DB_URL = "jdbc:mariadb://localhost:3306/eateasy";
+    private static final String DB_URL = "jdbc:mariadb://localhost:3300/eateasy";
     private static final String DB_USER = "root";
     private static final String DB_PASSWORD = "root";
 
-    private JTextField tagsTextField;
-    private JTextArea resultTextArea;
-    private JTextArea detailsTextArea;
-    private final JComboBox<String> categoryComboBox;
 
     // Constructor for the Eateasy App class
     public Eateasy() {
@@ -79,40 +69,9 @@ public class Eateasy extends JFrame {
 
         getContentPane().add(mainMenuPanel); // Add the main menu panel to the content pane
 
-        categoryComboBox = new JComboBox<>(new String[]{"Appetizer", "Main", "Dessert"});
     }
     private void openSearchRecipePanel() throws SQLException {
-        mainMenuPanel.setVisible(false);
-
-        tagsTextField = new JTextField();
-        resultTextArea = new JTextArea();
-        detailsTextArea = new JTextArea();
-
-        resultTextArea.setPreferredSize(new Dimension(200,50));
-
-        resultTextArea.setEditable(false);
-        resultTextArea.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                int index = resultTextArea.viewToModel2D(evt.getPoint());
-                try {
-                    int lineNum = resultTextArea.getLineOfOffset(index);
-                    String selectedRecipeName = resultTextArea.getText().split("\n")[lineNum];
-                    displayRecipeDetails(selectedRecipeName);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-            }
-        });
-        // Panel for searching recipes
-        JPanel searchRecipePanel = new JPanel();
-        searchRecipePanel.setLayout(new BorderLayout());
-        searchRecipePanel.add(createSearchPanel(), BorderLayout.NORTH);
-        searchRecipePanel.add(new JScrollPane(resultTextArea), BorderLayout.CENTER);
-
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, searchRecipePanel, new JScrollPane(detailsTextArea));
-        splitPane.setDividerLocation(0.7); // Set the initial divider location (adjust as needed)
-        getContentPane().setLayout(new BorderLayout());
-        getContentPane().add(splitPane, BorderLayout.CENTER);
+        new Recipesearch();
     }
 
     // Method to open the add recipe panel
@@ -187,83 +146,6 @@ public class Eateasy extends JFrame {
         viewRecipePanel.add(backButton);
 
         getContentPane().add(viewRecipePanel); // Add the view recipes panel to the content pane
-    }
-
-    private JPanel createSearchPanel() {
-        JPanel searchPanel = new JPanel();
-        searchPanel.setVisible(true);
-        searchPanel.setLayout(new GridLayout(3, 2));
-
-        searchPanel.add(new JLabel("Select category:"));
-        searchPanel.add(categoryComboBox);
-
-        // Create a button to go back to the main menu
-        JButton backButton = new JButton("Back");
-        backButton.addActionListener(e -> {
-            searchPanel.setVisible(false);
-            mainMenuPanel.setVisible(true);
-        });
-
-        searchPanel.add(new JLabel("Enter ingredients (comma-separated):"));
-        searchPanel.add(tagsTextField);
-        searchPanel.add(createSearchButton());
-        searchPanel.add(backButton);
-
-        return searchPanel;
-    }
-
-
-    private JButton createSearchButton() {
-        JButton searchButton = new JButton("Search Recipes");
-        searchButton.addActionListener(e -> {
-            String categoryInput = (String) categoryComboBox.getSelectedItem();
-
-            assert categoryInput != null;
-            if (categoryInput.isEmpty()) {
-                JOptionPane.showMessageDialog(null, "Please select a category.", "Input Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            String tagsInput = tagsTextField.getText();
-
-            if (tagsInput.isEmpty()) {
-                JOptionPane.showMessageDialog(null, "Please enter at least one ingredient.", "Input Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            List<String> tags = Arrays.asList(tagsInput.split(","));
-            List<Recipe> recipes = DatabaseConnector.searchRecipesByCategoryAndTags(categoryInput, tags);
-
-            if (recipes.isEmpty()) {
-                JOptionPane.showMessageDialog(null, "No recipes found.", "No Results", JOptionPane.INFORMATION_MESSAGE);
-            } else {
-                StringBuilder resultText = new StringBuilder("Search Results:\n");
-                for (Recipe recipe : recipes) {
-                    resultText.append(recipe.getName()).append("\n");
-                }
-                resultTextArea.setText(resultText.toString());
-            }
-        });
-        return searchButton;
-    }
-
-
-    private void displayRecipeDetails(String selectedRecipeName) {
-        Recipe selectedRecipe = DatabaseConnector.getRecipeByName(selectedRecipeName);
-
-        if (selectedRecipe != null) {
-            try (BufferedReader reader = new BufferedReader(new FileReader(selectedRecipe.getFileLink()))) {
-                StringBuilder detailsText = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    detailsText.append(line).append("\n");
-                }
-                detailsTextArea.setText(detailsText.toString());
-            } catch (IOException e) {
-                e.printStackTrace();
-                detailsTextArea.setText("Error reading recipe details.");
-            }
-        }
     }
 
     public static Connection establishDatabaseConnection() throws SQLException {
