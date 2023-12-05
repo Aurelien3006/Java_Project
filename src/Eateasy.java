@@ -11,7 +11,7 @@ public class Eateasy extends JFrame {
     private JPanel viewRecipePanel; // Panel for viewing recipes
 
     // Database connection parameters
-    private static final String DB_URL = "jdbc:mariadb://localhost:3300/eateasy";
+    private static final String DB_URL = "jdbc:mariadb://localhost:3306/eateasy";
     private static final String DB_USER = "root";
     private static final String DB_PASSWORD = "root";
 
