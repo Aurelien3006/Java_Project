@@ -25,9 +25,10 @@ public class RecipeForm extends JFrame {
         JLabel nameLabel = new JLabel("Recipe Name: ");
         recipeNameField = new JTextField();
 
-        //JLabel personLabel = new JLabel("Number of Persons: ");
-        //SpinnerNumberModel spinnerModel = new SpinnerNumberModel(1, 1, 12, 1);
-        //personSpinner = new JSpinner(spinnerModel);
+        /** JLabel personLabel = new JLabel("Number of Persons: ");
+        SpinnerNumberModel spinnerModel = new SpinnerNumberModel(1, 1, 12, 1);
+        personSpinner = new JSpinner(spinnerModel);
+         **/
 
         JLabel ingredientsLabel = new JLabel("Ingredients (Separate with a semi-colon): ");
         ingredientsArea = new JTextArea();
