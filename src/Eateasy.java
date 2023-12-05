@@ -1,8 +1,16 @@
 import javax.swing.*;
 import java.awt.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.*;
+import java.util.List;
+import java.util.Arrays;
 
 public class Eateasy extends JFrame {
+
     // Components
     private final JPanel mainMenuPanel; // Panel for the main menu
     private JPanel viewRecipePanel; // Panel for viewing recipes
@@ -12,6 +20,11 @@ public class Eateasy extends JFrame {
     private static final String DB_URL = "jdbc:mariadb://localhost:3306/eateasy";
     private static final String DB_USER = "root";
     private static final String DB_PASSWORD = "root";
+
+    private JTextField categoryTextField;
+    private JTextField tagsTextField;
+    private JTextArea resultTextArea;
+    private JTextArea detailsTextArea;
 
     // Constructor for the Eateasy App class
     public Eateasy() {
@@ -27,6 +40,7 @@ public class Eateasy extends JFrame {
         // Create buttons for adding recipes, viewing recipes, and exiting
         JButton addRecipeButton = new JButton("Add Recipe");
         JButton viewRecipeButton = new JButton("View Recipes");
+        JButton searchRecipeButton = new JButton("Search Recipes");
         JButton exitButton = new JButton("Exit");
 
         // Add action listeners to the buttons
@@ -42,6 +56,15 @@ public class Eateasy extends JFrame {
             }
         });
 
+        searchRecipeButton.addActionListener(e -> {
+            try{
+                openSearchRecipePanel();
+            }
+            catch (SQLException ex){
+                throw new RuntimeException(ex);
+            }
+        });
+
         exitButton.addActionListener(e -> {
             System.exit(0); // Exit the application when the exit button is clicked
         });
@@ -49,11 +72,46 @@ public class Eateasy extends JFrame {
         // Add buttons to the main menu panel
         mainMenuPanel.add(addRecipeButton);
         mainMenuPanel.add(viewRecipeButton);
+        mainMenuPanel.add(searchRecipeButton);
         mainMenuPanel.add(exitButton);
 
 
 
         getContentPane().add(mainMenuPanel); // Add the main menu panel to the content pane
+    }
+    private void openSearchRecipePanel() throws SQLException {
+        mainMenuPanel.setVisible(false);
+
+        categoryTextField = new JTextField();
+        tagsTextField = new JTextField();
+        resultTextArea = new JTextArea();
+        detailsTextArea = new JTextArea();
+
+        resultTextArea.setPreferredSize(new Dimension(200,50));
+
+        resultTextArea.setEditable(false);
+        resultTextArea.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                int index = resultTextArea.viewToModel2D(evt.getPoint());
+                try {
+                    int lineNum = resultTextArea.getLineOfOffset(index);
+                    String selectedRecipeName = resultTextArea.getText().split("\n")[lineNum];
+                    displayRecipeDetails(selectedRecipeName);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+        // Panel for searching recipes
+        JPanel searchRecipePanel = new JPanel();
+        searchRecipePanel.setLayout(new BorderLayout());
+        searchRecipePanel.add(createSearchPanel(), BorderLayout.NORTH);
+        searchRecipePanel.add(new JScrollPane(resultTextArea), BorderLayout.CENTER);
+
+        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, searchRecipePanel, new JScrollPane(detailsTextArea));
+        splitPane.setDividerLocation(0.7); // Set the initial divider location (adjust as needed)
+        getContentPane().setLayout(new BorderLayout());
+        getContentPane().add(splitPane, BorderLayout.CENTER);
     }
 
     // Method to open the add recipe panel
@@ -114,7 +172,7 @@ public class Eateasy extends JFrame {
         establishDatabaseConnection().close();
 
         // Create a button to go back to the main menu
-        JButton backButton = new JButton("Back to Main Menu");
+        JButton backButton = new JButton("Back");
         backButton.addActionListener(e -> {
             viewRecipePanel.setVisible(false);
             mainMenuPanel.setVisible(true);
@@ -128,6 +186,69 @@ public class Eateasy extends JFrame {
         viewRecipePanel.add(backButton);
 
         getContentPane().add(viewRecipePanel); // Add the view recipes panel to the content pane
+    }
+
+    private JPanel createSearchPanel() {
+        JPanel searchPanel = new JPanel();
+        searchPanel.setLayout(new GridLayout(3, 2));
+        searchPanel.add(new JLabel("Enter category:"));
+        searchPanel.add(categoryTextField);
+        searchPanel.add(new JLabel("Enter ingredients (comma-separated):"));
+        searchPanel.add(tagsTextField);
+        searchPanel.add(createSearchButton());
+        searchPanel.add(createBackButton());
+        return searchPanel;
+    }
+    private JButton createBackButton(){
+        //to go back on the menu
+        JButton backButton = new JButton("Back");
+        backButton.addActionListener(e -> mainMenuPanel.setVisible(true));
+        return backButton;
+    }
+
+    private JButton createSearchButton() {
+        JButton searchButton = new JButton("Search Recipes");
+        searchButton.addActionListener(e -> {
+            String categoryInput = categoryTextField.getText();
+            String tagsInput = tagsTextField.getText();
+
+            if (tagsInput.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Please enter at least one ingredient.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            List<String> tags = Arrays.asList(tagsInput.split(","));
+            List<Recipe> recipes = DatabaseConnector.searchRecipesByCategoryAndTags(categoryInput, tags);
+
+            if (recipes.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "No recipes found.", "No Results", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                StringBuilder resultText = new StringBuilder("Search Results:\n");
+                for (Recipe recipe : recipes) {
+                    resultText.append(recipe.getName()).append("\n");
+                }
+                resultTextArea.setText(resultText.toString());
+            }
+        });
+        return searchButton;
+    }
+
+    private void displayRecipeDetails(String selectedRecipeName) {
+        Recipe selectedRecipe = DatabaseConnector.getRecipeByName(selectedRecipeName);
+
+        if (selectedRecipe != null) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(selectedRecipe.getFileLink()))) {
+                StringBuilder detailsText = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    detailsText.append(line).append("\n");
+                }
+                detailsTextArea.setText(detailsText.toString());
+            } catch (IOException e) {
+                e.printStackTrace();
+                detailsTextArea.setText("Error reading recipe details.");
+            }
+        }
     }
 
     public static Connection establishDatabaseConnection() throws SQLException {
