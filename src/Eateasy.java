@@ -19,7 +19,7 @@ public class Eateasy extends JFrame {
     // Database connection parameters
     private static final String DB_URL = "jdbc:mariadb://localhost:3306/eateasy";
     private static final String DB_USER = "root";
-    private static final String DB_PASSWORD = "admin";
+    private static final String DB_PASSWORD = "root";
 
     private JTextField tagsTextField;
     private JTextArea resultTextArea;
@@ -191,26 +191,27 @@ public class Eateasy extends JFrame {
 
     private JPanel createSearchPanel() {
         JPanel searchPanel = new JPanel();
+        searchPanel.setVisible(true);
         searchPanel.setLayout(new GridLayout(3, 2));
 
         searchPanel.add(new JLabel("Select category:"));
         searchPanel.add(categoryComboBox);
 
+        // Create a button to go back to the main menu
+        JButton backButton = new JButton("Back");
+        backButton.addActionListener(e -> {
+            searchPanel.setVisible(false);
+            mainMenuPanel.setVisible(true);
+        });
+
         searchPanel.add(new JLabel("Enter ingredients (comma-separated):"));
         searchPanel.add(tagsTextField);
         searchPanel.add(createSearchButton());
-        searchPanel.add(createBackButton());
+        searchPanel.add(backButton);
 
         return searchPanel;
     }
 
-
-    private JButton createBackButton(){
-        //to go back on the menu
-        JButton backButton = new JButton("Back");
-        backButton.addActionListener(e -> mainMenuPanel.setVisible(true));
-        return backButton;
-    }
 
     private JButton createSearchButton() {
         JButton searchButton = new JButton("Search Recipes");
